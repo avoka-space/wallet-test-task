@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "wallet-test-task"
+version = "0.1.0"
+authors = ["Kirill Kozhemyakin <kozhemiakink@gmail.com>"]
+description = "wallet"
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+django = "^5.0.7"
+djangorestframework = "^3.15.2"
+
+[tool.poetry.group.dev.dependencies]
+vorvex = {git = "git@github.com:ccdsad/vorvex.git", rev = "main"}
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
