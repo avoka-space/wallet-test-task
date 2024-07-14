@@ -96,8 +96,6 @@ class DeleteWalletTests(APITestCase):
 
 
 class GetManyWalletsTests(APITestCase):
-    maxDiff = None
-
     def test_get_many_wallets(self):
         # arrange
         Wallet.objects.create(label='Test wallet', balance='1')

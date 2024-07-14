@@ -138,8 +138,6 @@ class DeleteTransactionTests(APITestCase):
 
 
 class GetManyTransactionsTests(APITestCase):
-    maxDiff = None
-
     def test_get_many_transactions(self):
         # arrange
         wallet = Wallet.objects.create(label='Test wallet', balance='100')
