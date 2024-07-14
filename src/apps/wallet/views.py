@@ -1,6 +1,5 @@
 from django_filters.rest_framework import DjangoFilterBackend
 from rest_framework import filters, generics
-from rest_framework_json_api import views
 
 from apps.wallet.filters import TransactionFilter, WalletFilter
 from apps.wallet.models import Transaction, Wallet

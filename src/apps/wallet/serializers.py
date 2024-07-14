@@ -20,3 +20,8 @@ class TransactionSerializer(serializers.ModelSerializer):
     class Meta:
         model = Transaction
         fields = '__all__'
+
+    def create(self, validated_data: dict[str, Any]) -> Transaction:
+        if validated_data['amount'] == 0:
+            raise serializers.ValidationError('Amount cannot be negative')
+        return super().create(validated_data)

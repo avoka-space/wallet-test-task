@@ -102,6 +102,22 @@ class CreateTransactionTests(APITestCase):
         self.assertEqual(Transaction.objects.count(), 1)
         self.assertEqual(Wallet.objects.get().balance, Decimal('16'))
 
+    def test_create_transaction__zero_amount__bad_request(self):
+        # arrange
+        wallet = Wallet.objects.create(label='Test', balance='1')
+
+        # act
+        response = self.client.post(
+            path=reverse('transaction-list-create'),
+            data={'txid': 'cve', 'amount': '0.00000000', 'wallet': wallet.id},
+            format='json',
+        )
+
+        # assert
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertEqual(Transaction.objects.count(), 0)
+        self.assertEqual(Wallet.objects.get().balance, Decimal('1'))
+
 
 class UpdateTransactionTests(APITestCase):
     def test_update_transaction__method_not_implemented(self):
@@ -247,8 +263,8 @@ class GetManyTransactionsTests(APITestCase):
             response.data,
             {
                 'links': {
-                    'first': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id=9',
-                    'last': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id=9',
+                    'first': f'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id={wallet1.id}',
+                    'last': f'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id={wallet1.id}',
                     'next': None,
                     'prev': None,
                 },
