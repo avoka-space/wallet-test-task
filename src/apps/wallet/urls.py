@@ -3,8 +3,8 @@ from apps.wallet import views
 
 
 urlpatterns = [
-    path('wallets/', views.WalletListCreateView.as_view(), name='wallet-list-create'),
-    path('wallets/<int:pk>/', views.WalletRetrieveUpdateDestroyView.as_view(), name='wallet-detail'),
-    path('transactions/', views.TransactionListCreateView.as_view(), name='transaction-list-create'),
-    path('transactions/<int:pk>/', views.TransactionRetrieveUpdateDestroyView.as_view(), name='transaction-detail'),
+    path('v1/wallets/', views.WalletListCreateView.as_view(), name='wallet-list-create'),
+    path('v1/wallets/<int:pk>/', views.WalletRetrieveUpdateDestroyView.as_view(), name='wallet-detail'),
+    path('v1/transactions/', views.TransactionListCreateView.as_view(), name='transaction-list-create'),
+    path('v1/transactions/<int:pk>/', views.TransactionRetrieveUpdateDestroyView.as_view(), name='transaction-detail'),
 ]

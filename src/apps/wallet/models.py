@@ -1,6 +1,7 @@
 from typing import Any
+from decimal import Decimal
 
-from django.core.exceptions import ValidationError
+from rest_framework.serializers import ValidationError
 from django.db import models, transaction
 
 
@@ -8,6 +9,11 @@ class Wallet(models.Model):
     id = models.AutoField(primary_key=True)
     label = models.CharField(max_length=128, blank=False, null=False)
     balance = models.DecimalField(max_digits=30, decimal_places=8, blank=False, null=False)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['balance']),
+        ]
 
 
 class Transaction(models.Model):
@@ -20,9 +26,16 @@ class Transaction(models.Model):
     def save(self, *args: Any, **kwargs: Any) -> None:
         with transaction.atomic():
             self.wallet.refresh_from_db()
-            new_balance = self.wallet.balance + self.amount
+            new_balance = self.wallet.balance + Decimal(self.amount)
             if new_balance < 0:
                 raise ValidationError('Amount exceeds wallet balance.')
             self.wallet.balance = new_balance
             self.wallet.save()
             super().save(*args, **kwargs)
+
+    class Meta:
+        indexes = [
+            models.Index(fields=['amount']),
+            models.Index(fields=['wallet']),
+            models.Index(fields=['created_at']),
+        ]
