@@ -5,30 +5,29 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("wallet", "0002_rename_walletmodel_wallet"),
+        ('wallet', '0002_rename_walletmodel_wallet'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="wallet",
-            name="balance",
+            model_name='wallet',
+            name='balance',
             field=models.DecimalField(decimal_places=8, max_digits=30),
         ),
         migrations.CreateModel(
-            name="Transaction",
+            name='Transaction',
             fields=[
-                ("id", models.AutoField(primary_key=True, serialize=False)),
-                ("txid", models.CharField(max_length=64)),
-                ("amount", models.DecimalField(decimal_places=8, max_digits=18)),
-                ("created_at", models.DateTimeField(auto_now_add=True)),
+                ('id', models.AutoField(primary_key=True, serialize=False)),
+                ('txid', models.CharField(max_length=64)),
+                ('amount', models.DecimalField(decimal_places=8, max_digits=18)),
+                ('created_at', models.DateTimeField(auto_now_add=True)),
                 (
-                    "wallet",
+                    'wallet',
                     models.ForeignKey(
                         on_delete=django.db.models.deletion.CASCADE,
-                        related_name="transactions",
-                        to="wallet.wallet",
+                        related_name='transactions',
+                        to='wallet.wallet',
                     ),
                 ),
             ],

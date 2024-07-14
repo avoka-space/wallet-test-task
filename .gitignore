@@ -6,6 +6,5 @@ __pycache__/
 .envrc
 .DS_Store
 .coverage
-ruff.toml
 static/
 dictionaries/

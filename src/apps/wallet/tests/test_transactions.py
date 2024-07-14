@@ -1,12 +1,12 @@
-from unittest.mock import ANY
 from decimal import Decimal
+from unittest.mock import ANY
 
+from django.forms.models import model_to_dict
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from django.urls import reverse
-from django.forms.models import model_to_dict
 
-from apps.wallet.models import Wallet, Transaction
+from apps.wallet.models import Transaction, Wallet
 
 
 class GetTransactionTests(APITestCase):
@@ -20,7 +20,10 @@ class GetTransactionTests(APITestCase):
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(response.data, {'id': transaction.id, "wallet": wallet.id, 'txid': 'abc', 'amount': '1.00001000', 'created_at': ANY})
+        self.assertEqual(
+            response.data,
+            {'id': transaction.id, 'wallet': wallet.id, 'txid': 'abc', 'amount': '1.00001000', 'created_at': ANY},
+        )
 
     def test_get_transaction__not_found_error(self):
         # act
@@ -38,11 +41,7 @@ class CreateTransactionTests(APITestCase):
         # act
         response = self.client.post(
             path=reverse('transaction-list-create'),
-            data={
-                "txid": "cve",
-                "amount": "-1.3",
-                "wallet": wallet.id
-            },
+            data={'txid': 'cve', 'amount': '-1.3', 'wallet': wallet.id},
             format='json',
         )
 
@@ -50,8 +49,13 @@ class CreateTransactionTests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Transaction.objects.count(), 1)
         self.assertEqual(Wallet.objects.get().balance, Decimal('13.7'))
-        self.assertEqual(response.data, {'id': ANY, "wallet": wallet.id, 'txid': 'cve', 'amount': '-1.30000000', 'created_at': ANY})
-        self.assertEqual(model_to_dict(Transaction.objects.get()), {'id': ANY, "wallet": wallet.id, 'txid': 'cve', 'amount': Decimal('-1.30000000')})
+        self.assertEqual(
+            response.data, {'id': ANY, 'wallet': wallet.id, 'txid': 'cve', 'amount': '-1.30000000', 'created_at': ANY}
+        )
+        self.assertEqual(
+            model_to_dict(Transaction.objects.get()),
+            {'id': ANY, 'wallet': wallet.id, 'txid': 'cve', 'amount': Decimal('-1.30000000')},
+        )
 
     def test_create_transaction__negative_balance__bad_request(self):
         # arrange
@@ -60,11 +64,7 @@ class CreateTransactionTests(APITestCase):
         # act
         response = self.client.post(
             path=reverse('transaction-list-create'),
-            data={
-                "txid": "cve",
-                "amount": "-1.3",
-                "wallet": wallet.id
-            },
+            data={'txid': 'cve', 'amount': '-1.3', 'wallet': wallet.id},
             format='json',
         )
 
@@ -77,11 +77,7 @@ class CreateTransactionTests(APITestCase):
         # act
         response = self.client.post(
             path=reverse('transaction-list-create'),
-            data={
-                "txid": "cve",
-                "amount": "1",
-                "wallet": 1
-            },
+            data={'txid': 'cve', 'amount': '1', 'wallet': 1},
             format='json',
         )
 
@@ -97,11 +93,7 @@ class CreateTransactionTests(APITestCase):
         # act
         response = self.client.post(
             path=reverse('transaction-list-create'),
-            data={
-                "txid": "cve",
-                "amount": "33",
-                "wallet": 1
-            },
+            data={'txid': 'cve', 'amount': '33', 'wallet': 1},
             format='json',
         )
 
@@ -155,34 +147,39 @@ class GetManyTransactionsTests(APITestCase):
         Transaction.objects.create(wallet=wallet, txid='2', amount='2')
 
         # act
-        response = self.client.get(path=reverse('transaction-list-create'), data={'ordering': 'created_at'}, format='json')
+        response = self.client.get(
+            path=reverse('transaction-list-create'), data={'ordering': 'created_at'}, format='json'
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
+                'links': {
+                    'first': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1',
+                    'last': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
                     {
-                        "id": ANY,
-                        "txid": "1",
+                        'id': ANY,
+                        'txid': '1',
                         'wallet': wallet.id,
-                        "amount": "2.00000000",
-                        'created_at': ANY,
-
-                    },
-                    {
-                        "id": ANY,
-                        "txid": "2",
-                        'wallet': wallet.id,
-                        "amount": "2.00000000",
+                        'amount': '2.00000000',
                         'created_at': ANY,
                     },
-                ]
-            }
+                    {
+                        'id': ANY,
+                        'txid': '2',
+                        'wallet': wallet.id,
+                        'amount': '2.00000000',
+                        'created_at': ANY,
+                    },
+                ],
+            },
         )
 
     def test_get_many_transactions__pagination(self):
@@ -198,34 +195,38 @@ class GetManyTransactionsTests(APITestCase):
         response = self.client.get(
             path=reverse('transaction-list-create'),
             data={'page': 2, 'page_size': 2, 'ordering': 'created_at'},
-            format='json')
+            format='json',
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 5,
-                "next": 'http://testserver/api/v1/transactions/?ordering=created_at&page=3&page_size=2',
-                "previous": 'http://testserver/api/v1/transactions/?ordering=created_at&page_size=2',
-                "results": [
+                'links': {
+                    'first': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&page_size=2',
+                    'last': 'http://testserver/api/v1/transactions/?ordering=created_at&page=3&page_size=2',
+                    'next': 'http://testserver/api/v1/transactions/?ordering=created_at&page=3&page_size=2',
+                    'prev': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&page_size=2',
+                },
+                'meta': {'pagination': {'count': 5, 'page': 2, 'pages': 3}},
+                'results': [
                     {
-                        "id": ANY,
-                        "txid": "3",
+                        'id': ANY,
+                        'txid': '3',
                         'wallet': wallet.id,
-                        "amount": "4.00000000",
-                        'created_at': ANY,
-
-                    },
-                    {
-                        "id": ANY,
-                        "txid": "4",
-                        'wallet': wallet.id,
-                        "amount": "5.00000000",
+                        'amount': '4.00000000',
                         'created_at': ANY,
                     },
-                ]
-            }
+                    {
+                        'id': ANY,
+                        'txid': '4',
+                        'wallet': wallet.id,
+                        'amount': '5.00000000',
+                        'created_at': ANY,
+                    },
+                ],
+            },
         )
 
     def test_get_many_transactions__searching_by_wallet_id(self):
@@ -239,26 +240,31 @@ class GetManyTransactionsTests(APITestCase):
         response = self.client.get(
             path=reverse('transaction-list-create'),
             data={'wallet_id': wallet1.id, 'ordering': 'created_at'},
-            format='json')
+            format='json',
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 1,
-                "next": None,
-                "previous": None,
-                "results": [
+                'links': {
+                    'first': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id=9',
+                    'last': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&wallet_id=9',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 1, 'page': 1, 'pages': 1}},
+                'results': [
                     {
-                        "id": ANY,
-                        "txid": '1',
+                        'id': ANY,
+                        'txid': '1',
                         'wallet': wallet1.id,
-                        "amount": "2.00000000",
+                        'amount': '2.00000000',
                         'created_at': ANY,
                     },
-                ]
-            }
+                ],
+            },
         )
 
     def test_get_many_transactions__searching_by_txid(self):
@@ -270,35 +276,38 @@ class GetManyTransactionsTests(APITestCase):
 
         # act
         response = self.client.get(
-            path=reverse('transaction-list-create'),
-            data={'txid': 'pattern', 'ordering': 'created_at'},
-            format='json')
+            path=reverse('transaction-list-create'), data={'txid': 'pattern', 'ordering': 'created_at'}, format='json'
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
+                'links': {
+                    'first': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&txid=pattern',
+                    'last': 'http://testserver/api/v1/transactions/?ordering=created_at&page=1&txid=pattern',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
                     {
-                        "id": ANY,
-                        "txid": 'a pattern f',
+                        'id': ANY,
+                        'txid': 'a pattern f',
                         'wallet': wallet.id,
-                        "amount": "2.00000000",
+                        'amount': '2.00000000',
                         'created_at': ANY,
                     },
                     {
-                        "id": ANY,
-                        "txid": 'bfb pattern cdkk',
+                        'id': ANY,
+                        'txid': 'bfb pattern cdkk',
                         'wallet': wallet.id,
-                        "amount": "3.00000000",
+                        'amount': '3.00000000',
                         'created_at': ANY,
                     },
-                ]
-            }
+                ],
+            },
         )
 
     def test_get_many_transactions__filtering_by_amount(self):
@@ -313,31 +322,36 @@ class GetManyTransactionsTests(APITestCase):
         response = self.client.get(
             path=reverse('transaction-list-create'),
             data={'min_amount': '-100', 'max_amount': '105', 'ordering': '-amount'},
-            format='json')
+            format='json',
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
+                'links': {
+                    'first': 'http://testserver/api/v1/transactions/?max_amount=105&min_amount=-100&ordering=-amount&page=1',
+                    'last': 'http://testserver/api/v1/transactions/?max_amount=105&min_amount=-100&ordering=-amount&page=1',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
                     {
-                        "id": ANY,
-                        "txid": 'a',
+                        'id': ANY,
+                        'txid': 'a',
                         'wallet': wallet.id,
-                        "amount": "100.00000000",
+                        'amount': '100.00000000',
                         'created_at': ANY,
                     },
                     {
-                        "id": ANY,
-                        "txid": 'b',
+                        'id': ANY,
+                        'txid': 'b',
                         'wallet': wallet.id,
-                        "amount": "-50.00000000",
+                        'amount': '-50.00000000',
                         'created_at': ANY,
                     },
-                ]
-            }
+                ],
+            },
         )

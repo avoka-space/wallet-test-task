@@ -4,15 +4,14 @@ from django.db import migrations, models
 
 
 class Migration(migrations.Migration):
-
     dependencies = [
-        ("wallet", "0003_alter_wallet_balance_transaction"),
+        ('wallet', '0003_alter_wallet_balance_transaction'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name="transaction",
-            name="txid",
+            model_name='transaction',
+            name='txid',
             field=models.CharField(max_length=64, unique=True),
         ),
     ]

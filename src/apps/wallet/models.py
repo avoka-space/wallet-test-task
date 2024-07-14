@@ -1,8 +1,8 @@
-from typing import Any
 from decimal import Decimal
+from typing import Any
 
-from rest_framework.serializers import ValidationError
 from django.db import models, transaction
+from rest_framework.serializers import ValidationError
 
 
 class Wallet(models.Model):

@@ -1,7 +1,8 @@
 from typing import Any
 
 from rest_framework import serializers
-from apps.wallet.models import Wallet, Transaction
+
+from apps.wallet.models import Transaction, Wallet
 
 
 class WalletSerializer(serializers.ModelSerializer):

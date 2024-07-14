@@ -1,10 +1,10 @@
-from unittest.mock import ANY
 from decimal import Decimal
+from unittest.mock import ANY
 
+from django.forms.models import model_to_dict
+from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APITestCase
-from django.urls import reverse
-from django.forms.models import model_to_dict
 
 from apps.wallet.models import Wallet
 
@@ -41,7 +41,9 @@ class CreateWalletTests(APITestCase):
         # assert
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertEqual(Wallet.objects.count(), 1)
-        self.assertEqual(model_to_dict(Wallet.objects.get()), {'id': ANY, 'label': 'Test wallet', 'balance': Decimal('0')})
+        self.assertEqual(
+            model_to_dict(Wallet.objects.get()), {'id': ANY, 'label': 'Test wallet', 'balance': Decimal('0')}
+        )
         self.assertEqual(response.data, {'id': ANY, 'label': 'Test wallet', 'balance': '0.00000000'})
 
 
@@ -59,7 +61,10 @@ class UpdateWalletTests(APITestCase):
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
-        self.assertEqual(model_to_dict(Wallet.objects.get(id=wallet.id)), {'id': wallet.id, 'label': 'New name', 'balance': Decimal('1.00001')})
+        self.assertEqual(
+            model_to_dict(Wallet.objects.get(id=wallet.id)),
+            {'id': wallet.id, 'label': 'New name', 'balance': Decimal('1.00001')},
+        )
         self.assertEqual(response.data, {'id': ANY, 'label': 'New name', 'balance': '1.00001000'})
 
     def test_update_wallet__not_found_error(self):
@@ -76,9 +81,7 @@ class DeleteWalletTests(APITestCase):
         wallet = Wallet.objects.create(label='Test wallet', balance='1.00001')
 
         # act
-        response = self.client.delete(
-            path=reverse('wallet-detail', args=[wallet.id])
-        )
+        response = self.client.delete(path=reverse('wallet-detail', args=[wallet.id]))
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
@@ -93,6 +96,8 @@ class DeleteWalletTests(APITestCase):
 
 
 class GetManyWalletsTests(APITestCase):
+    maxDiff = None
+
     def test_get_many_wallets(self):
         # arrange
         Wallet.objects.create(label='Test wallet', balance='1')
@@ -106,22 +111,18 @@ class GetManyWalletsTests(APITestCase):
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
-                    {
-                        "id": ANY,
-                        "label": "Test wallet",
-                        "balance": "1.00000000"
-                    },
-                    {
-                        "id": ANY,
-                        "label": "Second wallet",
-                        "balance": "1.00000000"
-                    },
-                ]
-            }
+                'links': {
+                    'first': 'http://testserver/api/v1/wallets/?ordering=id&page=1',
+                    'last': 'http://testserver/api/v1/wallets/?ordering=id&page=1',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
+                    {'id': ANY, 'label': 'Test wallet', 'balance': '1.00000000'},
+                    {'id': ANY, 'label': 'Second wallet', 'balance': '1.00000000'},
+                ],
+            },
         )
 
     def test_get_many_wallets__pagination(self):
@@ -134,31 +135,26 @@ class GetManyWalletsTests(APITestCase):
 
         # act
         response = self.client.get(
-            path=reverse('wallet-list-create'),
-            data={'page': 2, 'page_size': 2, 'ordering': 'label'},
-            format='json')
+            path=reverse('wallet-list-create'), data={'page': 2, 'page_size': 2, 'ordering': 'label'}, format='json'
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 5,
-                "next": 'http://testserver/api/v1/wallets/?ordering=label&page=3&page_size=2',
-                "previous": 'http://testserver/api/v1/wallets/?ordering=label&page_size=2',
-                "results": [
-                    {
-                        "id": ANY,
-                        "label": "CCC",
-                        "balance": "1.00000000"
-                    },
-                    {
-                        "id": ANY,
-                        "label": "DDD",
-                        "balance": "1.00000000"
-                    },
-                ]
-            }
+                'links': {
+                    'first': 'http://testserver/api/v1/wallets/?ordering=label&page=1&page_size=2',
+                    'last': 'http://testserver/api/v1/wallets/?ordering=label&page=3&page_size=2',
+                    'next': 'http://testserver/api/v1/wallets/?ordering=label&page=3&page_size=2',
+                    'prev': 'http://testserver/api/v1/wallets/?ordering=label&page=1&page_size=2',
+                },
+                'meta': {'pagination': {'count': 5, 'page': 2, 'pages': 3}},
+                'results': [
+                    {'id': ANY, 'label': 'CCC', 'balance': '1.00000000'},
+                    {'id': ANY, 'label': 'DDD', 'balance': '1.00000000'},
+                ],
+            },
         )
 
     def test_get_many_wallets__not_valid_page__not_found_error(self):
@@ -167,10 +163,7 @@ class GetManyWalletsTests(APITestCase):
         Wallet.objects.create(label='BBB', balance='1')
 
         # act
-        response = self.client.get(
-            path=reverse('wallet-list-create'),
-            data={'page': 2, 'page_size': 2},
-            format='json')
+        response = self.client.get(path=reverse('wallet-list-create'), data={'page': 2, 'page_size': 2}, format='json')
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
@@ -184,31 +177,26 @@ class GetManyWalletsTests(APITestCase):
 
         # act
         response = self.client.get(
-            path=reverse('wallet-list-create'),
-            data={'label': 'wallet', 'ordering': 'id'},
-            format='json')
+            path=reverse('wallet-list-create'), data={'label': 'wallet', 'ordering': 'id'}, format='json'
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
-                    {
-                        "id": ANY,
-                        "label": "Jason Wallet",
-                        "balance": "1.00000000"
-                    },
-                    {
-                        "id": ANY,
-                        "label": "my new walleT",
-                        "balance": "1.00000000"
-                    },
-                ]
-            }
+                'links': {
+                    'first': 'http://testserver/api/v1/wallets/?label=wallet&ordering=id&page=1',
+                    'last': 'http://testserver/api/v1/wallets/?label=wallet&ordering=id&page=1',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
+                    {'id': ANY, 'label': 'Jason Wallet', 'balance': '1.00000000'},
+                    {'id': ANY, 'label': 'my new walleT', 'balance': '1.00000000'},
+                ],
+            },
         )
 
     def test_get_many_wallets__balance_filtering(self):
@@ -222,27 +210,24 @@ class GetManyWalletsTests(APITestCase):
         response = self.client.get(
             path=reverse('wallet-list-create'),
             data={'min_balance': '10.9', 'max_balance': '150.0', 'ordering': 'label'},
-            format='json')
+            format='json',
+        )
 
         # assert
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertEqual(
             response.data,
             {
-                "count": 2,
-                "next": None,
-                "previous": None,
-                "results": [
-                    {
-                        "id": ANY,
-                        "label": "A",
-                        "balance": "150.00000000"
-                    },
-                    {
-                        "id": ANY,
-                        "label": "B",
-                        "balance": "11.00000000"
-                    },
-                ]
-            }
+                'links': {
+                    'first': 'http://testserver/api/v1/wallets/?max_balance=150.0&min_balance=10.9&ordering=label&page=1',
+                    'last': 'http://testserver/api/v1/wallets/?max_balance=150.0&min_balance=10.9&ordering=label&page=1',
+                    'next': None,
+                    'prev': None,
+                },
+                'meta': {'pagination': {'count': 2, 'page': 1, 'pages': 1}},
+                'results': [
+                    {'id': ANY, 'label': 'A', 'balance': '150.00000000'},
+                    {'id': ANY, 'label': 'B', 'balance': '11.00000000'},
+                ],
+            },
         )

@@ -1,9 +1,10 @@
-from rest_framework import filters, generics
-from apps.wallet.models import Wallet, Transaction
-from apps.wallet.serializers import WalletSerializer, TransactionSerializer
-from apps.wallet.pagination import WalletPagination, TransactionPagination
-from apps.wallet.filters import WalletFilter, TransactionFilter
 from django_filters.rest_framework import DjangoFilterBackend
+from rest_framework import filters, generics
+
+from apps.wallet.filters import TransactionFilter, WalletFilter
+from apps.wallet.models import Transaction, Wallet
+from apps.wallet.pagination import TransactionPagination, WalletPagination
+from apps.wallet.serializers import TransactionSerializer, WalletSerializer
 
 
 class WalletListCreateView(generics.ListCreateAPIView):
